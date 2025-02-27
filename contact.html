@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoctorIP - Enterprise IP Intelligence Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2dd4bf;
+            --dark: #0f172a;
+            --darker: #020617;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--darker);
+            color: #f8fafc;
+            line-height: 1.7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-header {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            mask: url('data:image/svg+xml,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0L3 7l1.63 1.27L12 14l7.36-5.73L21 7l-9-7zm0 7.73L5.04 12 12 16.27 18.96 12 12 7.73zM2.05 13.07l1.63 1.27L12 24l8.32-9.66 1.63-1.27L12 20.93 2.05 13.07z"/></svg>') center/contain no-repeat;
+        }
+
+        .contact-section {
+            max-width: 1000px;
+            margin: 160px auto 2rem;
+            padding: 2rem;
+        }
+
+        .contact-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 1rem;
+        }
+
+        .contact-info {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .contact-info h2 {
+            color: #2dd4bf;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+
+        .contact-info p {
+            color: #94a3b8;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #94a3b8;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem;
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 0.5rem;
+            color: white;
+            font-size: 1rem;
+        }
+
+        textarea.form-input {
+            height: 150px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background: #2dd4bf;
+            color: #0f172a;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        #formMessage {
+            display: none;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border-radius: 0.5rem;
+            background: rgba(45, 212, 191, 0.1);
+            border: 1px solid #2dd4bf;
+            color: #2dd4bf;
+            text-align: center;
+        }
+
+        .main-footer {
+            background: var(--dark);
+            margin-top: auto;
+            padding: 4rem 2rem 2rem;
+        }
+
+        .footer-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            padding-bottom: 3rem;
+        }
+
+        .footer-section h4 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-content">
+            <div class="brand">
+                <div class="logo"></div>
+                <h1>DoctorIP</h1>
+            </div>
+            <nav class="main-nav">
+                <ul style="display: flex; gap: 2rem; list-style: none;">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#solutions">Solutions</a></li>
+                    <li><a href="#enterprise">Enterprise</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="contact-section">
+        <div class="contact-container">
+            <div class="contact-info">
+                <h2>Get in Touch</h2>
+                <p>Have questions? Our team is here to help.</p>
+            </div>
+    
+            <form id="contactForm" onsubmit="showSuccessMessage(event)">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" class="form-input" required>
+                </div>
+    
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" class="form-input" required>
+                </div>
+    
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" class="form-input" required>
+                </div>
+    
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" class="form-input" required></textarea>
+                </div>
+    
+                <button type="submit" class="submit-btn">Send Message</button>
+                <div id="formMessage">Message submitted successfully!</div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-section">
+                <h4>Company</h4>
+                <ul style="list-style: none;">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="careers.html">Careers</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">GDPR Compliance</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="#">API Documentation</a></li>
+                    <li><a href="#">Security Audit</a></li>
+                    <li><a href="#">System Status</a></li>
+                </ul>
+            </div>
+        </div>
+        <div style="text-align: center; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 2rem;">
+            <p>© 2024 DoctorIP Technologies. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function showSuccessMessage(event) {
+            event.preventDefault();
+            const message = document.getElementById('formMessage');
+            message.style.display = 'block';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

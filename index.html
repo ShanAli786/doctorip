@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoctorIP - Enterprise IP Intelligence Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Add Leaflet CSS for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary: #2dd4bf;
+            --dark: #0f172a;
+            --darker: #020617;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--darker);
+            color: #f8fafc;
+            line-height: 1.7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-header {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            mask: url('data:image/svg+xml,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0L3 7l1.63 1.27L12 14l7.36-5.73L21 7l-9-7zm0 7.73L5.04 12 12 16.27 18.96 12 12 7.73zM2.05 13.07l1.63 1.27L12 24l8.32-9.66 1.63-1.27L12 20.93 2.05 13.07z"/></svg>') center/contain no-repeat;
+        }
+
+        .hero-section {
+            padding: 160px 2rem 6rem;
+            background: linear-gradient(45deg, var(--darker), #1e293b);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .search-container {
+            background: var(--glass);
+            backdrop-filter: blur(8px);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 680px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .grid-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            background: var(--glass);
+            backdrop-filter: blur(8px);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric-card {
+            padding: 1.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .main-footer {
+            background: var(--dark);
+            margin-top: auto;
+            padding: 4rem 2rem 2rem;
+        }
+
+        .footer-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            padding-bottom: 3rem;
+        }
+
+        .footer-section h4 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1.25rem 2rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            color: white;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+        }
+
+        .cta-button {
+            background: var(--primary);
+            color: var(--dark);
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(45, 212, 191, 0.3);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .decorative-shape {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(45,212,191,0.1) 0%, transparent 70%);
+            pointer-events: none;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        a {
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .main-nav a {
+            position: relative;
+            padding-bottom: 0.25rem;
+        }
+
+        .main-nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .main-nav a:hover::after {
+            width: 100%;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .social-links a {
+            display: inline-block;
+            padding: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .social-links a:hover {
+            transform: translateY(-3px);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--primary);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* New map styles */
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 2rem;
+            border-radius: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-content">
+            <div class="brand">
+                <div class="logo"></div>
+                <h1>DoctorIP</h1>
+            </div>
+            <nav class="main-nav">
+                <ul style="display: flex; gap: 2rem; list-style: none;">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#solutions">Solutions</a></li>
+                    <li><a href="#enterprise">Enterprise</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-section">
+            <div class="decorative-shape" style="top: -200px; left: -300px;"></div>
+            <div class="decorative-shape" style="bottom: -300px; right: -200px;"></div>
+            <div class="hero-content">
+                <h2 style="font-size: 3.5rem; margin-bottom: 1.5rem;">Enterprise-Grade IP Intelligence</h2>
+                <p style="color: #94a3b8; max-width: 600px; margin: 0 auto 3rem;">
+                    Advanced network analysis and threat detection powered by AI
+                </p>
+                <div class="search-container">
+                    <div class="input-group">
+                        <input type="text" class="search-input" id="ipInput" 
+                               placeholder="Enter IP Address or Domain">
+                        <button class="cta-button" onclick="fetchIPDetails()" style="margin-top: 1.5rem; width: 100%;">
+                            <i class="fas fa-search"></i> Analyze Network
+                        </button>
+                    </div>
+                    <div id="loading" style="display: none; text-align: center; padding: 20px;">
+                        <div class="loading-spinner"></div>
+                        <p>Analyzing Network...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="dashboard" id="results" style="display: none;">
+            <div class="grid-panel" id="ipDetails">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            <!-- Added map button and container -->
+            <button class="cta-button" id="mapButton" onclick="showMap()" style="margin: 2rem auto; display: none;">
+                <i class="fas fa-map"></i> View Map
+            </button>
+            <div id="map"></div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-section">
+                <h4>Company</h4>
+                <ul style="list-style: none;">
+                    <li><a href="doctor.html">Home</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="careers.html">Careers</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul style="list-style: none;">
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">GDPR Compliance</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul style="list-style: none;">
+                    <li><a href="#">API Documentation</a></li>
+                    <li><a href="#">Security Audit</a></li>
+                    <li><a href="#">System Status</a></li>
+                </ul>
+            </div>
+        </div>
+        <div style="text-align: center; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 2rem;">
+            <p>© 2024 DoctorIP. All rights reserved powered by IQ Connectik.</p>
+        </div>
+    </footer>
+
+    <!-- Add Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let currentCoords = null;
+
+        document.querySelector('.hamburger')?.addEventListener('click', () => {
+            document.querySelector('.hamburger').classList.toggle('active');
+            document.querySelector('nav').classList.toggle('active');
+        });
+        
+        function ipToDecimal(ip) {
+            if (ip.includes(':')) return ip; // Return raw IPv6 as decimal conversion doesn't apply
+            return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
+        }
+        
+        function formatCoordinate(coord, isLat) {
+            const absCoord = Math.abs(coord);
+            const degrees = Math.floor(absCoord);
+            const minutes = Math.floor((absCoord - degrees) * 60);
+            const seconds = ((absCoord - degrees - minutes / 60) * 3600).toFixed(2);
+            const direction = isLat ? 
+                (coord >= 0 ? 'N' : 'S') : 
+                (coord >= 0 ? 'E' : 'W');
+            return `${degrees}° ${minutes}′ ${seconds}″ ${direction}`;
+        }
+        
+        async function fetchIPDetails() {
+            const ipInput = document.getElementById("ipInput").value.trim();
+            const ipv4Regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+            const ipv6Regex = /^([0-9a-fA-F]{0,4}:){7}[0-9a-fA-F]{0,4}$/;
+            
+            if (!ipInput || (!ipv4Regex.test(ipInput) && !ipv6Regex.test(ipInput))) {
+                alert("Please enter a valid IPv4 or IPv6 address!");
+                return;
+            }
+        
+            const resultsSection = document.getElementById("results");
+            const loading = document.getElementById("loading");
+            const mapButton = document.getElementById("mapButton");
+            
+            try {
+                resultsSection.style.display = "none";
+                loading.style.display = "block";
+                document.getElementById("map").style.display = "none";
+                
+                const response = await fetch(`https://ipapi.co/${ipInput}/json/`);
+                const data = await response.json();
+        
+                if (data.error) {
+                    alert(`Error: ${data.reason}`);
+                    return;
+                }
+        
+                const detailsHTML = `
+                    <div class="metric-card"><h4>${ipInput.includes(':') ? 'IPv6 Address' : 'Decimal'}</h4><p>${ipToDecimal(ipInput)}</p></div>
+                    <div class="metric-card"><h4>Hostname</h4><p>${data.hostname || ipInput}</p></div>
+                    <div class="metric-card"><h4>ASN</h4><p>${data.asn}</p></div>
+                    <div class="metric-card"><h4>ISP</h4><p>${data.org}</p></div>
+                    <div class="metric-card"><h4>Server</h4><p>${data.org.includes('OVH') ? 'VPN Server' : 'None detected'}</p></div>
+                    <div class="metric-card"><h4>Country</h4><p>${data.country_name}</p></div>
+                    <div class="metric-card"><h4>State/Region</h4><p>${data.region || 'N/A'}</p></div>
+                    <div class="metric-card"><h4>City</h4><p>${data.city || 'N/A'}</p></div>
+                    <div class="metric-card"><h4>Latitude</h4><p>${data.latitude} (${formatCoordinate(data.latitude, true)})</p></div>
+                    <div class="metric-card"><h4>Longitude</h4><p>${data.longitude} (${formatCoordinate(data.longitude, false)})</p></div>
+                `;
+        
+                document.getElementById("ipDetails").innerHTML = detailsHTML;
+                resultsSection.style.display = "block";
+                mapButton.style.display = "block";
+                currentCoords = [data.latitude, data.longitude];
+                
+            } catch (error) {
+                console.error("Fetch error:", error);
+                alert("Failed to fetch IP details. Please try again.");
+            } finally {
+                loading.style.display = "none";
+            }
+        }
+
+        function showMap() {
+            const mapContainer = document.getElementById("map");
+            if (!currentCoords) return;
+
+            if (!map) {
+                map = L.map('map').setView(currentCoords, 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+            } else {
+                map.setView(currentCoords, 13);
+            }
+
+            L.marker(currentCoords).addTo(map);
+            mapContainer.style.display = "block";
+        }
+    </script>
+</body>
+</html>

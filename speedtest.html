@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Speed Test</title>
+    <style>
+        :root {
+            --primary: #00ff88;
+            --secondary: #00b4d8;
+            --background: #0a192f;
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .speedometer {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 2rem auto;
+        }
+
+        .gauge-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                #00ff88 0deg,
+                #00b4d8 180deg,
+                rgba(255,255,255,0.1) 180deg,
+                rgba(255,255,255,0.1) 360deg
+            );
+            position: relative;
+        }
+
+        .needle {
+            width: 2px;
+            height: 50%;
+            background: #fff;
+            position: absolute;
+            left: 50%;
+            bottom: 50%;
+            transform-origin: bottom;
+            transform: rotate(-90deg);
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .center-dot {
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .speed-display {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .test-results {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 1rem;
+        }
+
+        button {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 2rem;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .test-results {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="speedometer">
+            <div class="gauge-circle">
+                <div class="needle" id="needle"></div>
+                <div class="center-dot"></div>
+            </div>
+            <div class="speed-display">
+                <span id="currentSpeed">0</span> Mbps
+            </div>
+        </div>
+
+        <div class="test-results">
+            <div class="result-card">
+                <h3>Ping</h3>
+                <p id="ping">0 ms</p>
+            </div>
+            <div class="result-card">
+                <h3>Download</h3>
+                <p id="download">0 Mbps</p>
+            </div>
+            <div class="result-card">
+                <h3>Upload</h3>
+                <p id="upload">0 Mbps</p>
+            </div>
+        </div>
+
+        <button onclick="startTest()" id="startBtn">Start Test</button>
+    </div>
+
+    <script>
+        async function startTest() {
+            const startBtn = document.getElementById('startBtn');
+            startBtn.disabled = true;
+            startBtn.textContent = 'Testing...';
+
+            // Reset values
+            document.getElementById('ping').textContent = '0 ms';
+            document.getElementById('download').textContent = '0 Mbps';
+            document.getElementById('upload').textContent = '0 Mbps';
+            updateNeedle(0);
+
+            // Ping Test
+            const ping = await measurePing();
+            document.getElementById('ping').textContent = `${ping} ms`;
+
+            // Download Test
+            const downloadSpeed = await measureSpeed('download');
+            document.getElementById('download').textContent = `${downloadSpeed} Mbps`;
+            animateNeedle(downloadSpeed);
+
+            // Upload Test
+            const uploadSpeed = await measureSpeed('upload');
+            document.getElementById('upload').textContent = `${uploadSpeed} Mbps`;
+            animateNeedle(uploadSpeed);
+
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start New Test';
+        }
+
+        async function measurePing() {
+            const start = performance.now();
+            await fetch('https://httpbin.org/get?t=' + Date.now());
+            return Math.round(performance.now() - start);
+        }
+
+        async function measureSpeed(type) {
+            const fileSizeMB = type === 'download' ? 10 : 5;
+            const url = type === 'download' 
+                ? `https://httpbin.org/stream/${fileSizeMB * 1024}`
+                : 'https://httpbin.org/post';
+
+            const start = performance.now();
+            
+            if(type === 'download') {
+                await fetch(url);
+            } else {
+                const data = new Array(fileSizeMB * 1024 * 1024).fill('0').join('');
+                await fetch(url, {
+                    method: 'POST',
+                    body: data,
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
+                });
+            }
+
+            const duration = (performance.now() - start) / 1000;
+            const speed = (fileSizeMB * 8) / duration; // Convert to Mbps
+            return speed.toFixed(1);
+        }
+
+        function animateNeedle(speed) {
+            const maxSpeed = 100; // Maximum display speed
+            const degrees = Math.min((speed / maxSpeed) * 180, 180) - 90;
+            updateNeedle(degrees);
+            animateSpeedDisplay(speed);
+        }
+
+        function updateNeedle(degrees) {
+            document.getElementById('needle').style.transform = `rotate(${degrees}deg)`;
+        }
+
+        function animateSpeedDisplay(targetSpeed) {
+            let current = 0;
+            const speedElement = document.getElementById('currentSpeed');
+            const increment = targetSpeed / 100;
+
+            const animate = () => {
+                if (current < targetSpeed) {
+                    current += increment;
+                    speedElement.textContent = Math.min(current.toFixed(1), targetSpeed);
+                    requestAnimationFrame(animate);
+                }
+            };
+            animate();
+        }
+    </script>
+</body>
+</html>
